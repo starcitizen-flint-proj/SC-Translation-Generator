@@ -38,31 +38,33 @@ class CstoneShipParts(BaseCstoneTranslator):
     PREFIX_ITEM_NAME = 'ITEM_NAME'
     # NOTE 跳跃模块和刀片的名称/数据不对，这俩目前也没啥需要改的所以无所谓了
     APIS = ['GetCoolers', 'GetPowers', 'GetDrives', 'GetShields'] 
-    NAME_TABLE = {
-        'Civilian':     '民',
-        'Civilian ':    '民',
-        'Civilian  ':   '民',
-        'Competition':  '竞',
-        'Competition ': '竞',
-        'Industrial':   '工',
-        'Military':     '军',
-        'Stealth':      '隐',
-        'Stealth ':     '隐',
-        'Cooler':       '冷却',
-        'JumpDrive':    '跳跃模块',
-        'PowerPlant':   '发电',
-        'QuantumDrive': '量子',
-        'Shield':       '护盾',
-    }
     
-    def __init__(self, base_url: str = 'https://finder.cstone.space', auto_grab = True, special_id_file = 'custom\\direct_id\\ship_parts.txt') -> None:
+    def __init__(
+        self, 
+        base_url: str = 'https://finder.cstone.space', 
+        auto_grab = True, 
+        special_id_file  = 'custom/direct_id/ship_parts.txt',
+        replace_map_file = 'custom/replace_map/ship_parts.txt',
+        ignore_id_file   = 'custom/ignore/ship_parts.txt',
+    ) -> None:
         super().__init__(base_url, auto_grab)
-        self.special_replace_map = dict()
+        self.special_id_map = dict()
+        self.replace_map         = dict()
+        self.ignore_ids          = set()
         with open(special_id_file, 'r', encoding='utf-8') as file:
             for line in file.readlines():
                 target, _, tid = line.partition('=')
                 tid = tid.removesuffix('\n')
-                self.special_replace_map[target] = tid
+                self.special_id_map[target] = tid
+        with open(special_id_file, 'r', encoding='utf-8') as file:
+            for line in file.readlines():
+                src, _, dst = line.partition('=')
+                dst = dst.removesuffix('\n')
+                self.replace_map[src] = dst
+        with open(ignore_id_file, 'r', encoding='utf-8') as file:
+            for line in file.readlines():
+                tid = line.removesuffix('\n')
+                self.ignore_ids.add(tid)
         if auto_grab:
             self.grab_data_batch()
         
@@ -70,7 +72,8 @@ class CstoneShipParts(BaseCstoneTranslator):
         json_data = self.call_api(api)
         for d in json_data:
             base_id = str(d['ItemCodeName']).upper().removesuffix('SCITEM').removesuffix('_')
-            tids = (self.special_replace_map.get(base_id),)
+            if base_id in self.ignore_ids: continue
+            tids = (self.special_id_map.get(base_id),)
             tids = (
                 f"{self.PREFIX_ITEM_NAME}{base_id}",
                 f"{self.PREFIX_ITEM_NAME}_{base_id}",
@@ -90,7 +93,7 @@ class CstoneShipParts(BaseCstoneTranslator):
             self._grab_data(api)
             
     def __replace(self, name):
-        return self.NAME_TABLE.get(name, name)
+        return self.replace_map.get(name, name)
     
     def translate(self, tid: str|tuple, cn_str: str|None, en_str: str|None) -> str:
         if cn_str is None or en_str is None: raise RuntimeError("文本未提供")

@@ -1,0 +1,14 @@
+Civilian=民
+Civilian =民
+Civilian  =民
+Competition=竞
+Competition =竞
+Industrial=工
+Military=军
+Stealth=隐
+Stealth =隐
+Cooler=冷却
+JumpDrive=跳跃模块
+PowerPlant=发电
+QuantumDrive=量子
+Shield=护盾
