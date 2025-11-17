@@ -17,7 +17,7 @@ class BaseCstoneTranslator(BaseRuleset):
         
         self.base_url = base_url
         self.data = dict()
-        
+        self.apis = list()
         
         self.special_id_map = dict()
         self.replace_map    = dict()
@@ -50,13 +50,18 @@ class BaseCstoneTranslator(BaseRuleset):
     
     def _format_int(self, num):
         return f"{num:,}"
-        
+    
+    def grab_data_batch(self) -> None:
+        for api in self.apis:
+            self._grab_data(api)
+            
+    def _replace(self, name):
+        return self.replace_map.get(name, name)
+    
+    # Cstone数据的规则集新增的需要实现的接口
+    # 对某个API抓取数据
     @abstractmethod
     def _grab_data(self, api: str) -> None:
-        pass
-    
-    @abstractmethod
-    def grab_data_batch(self) -> None:
         pass
 
 # NOTE 这个基本算是最简单最标准的一个了 
@@ -74,30 +79,27 @@ class CstoneMissile(BaseCstoneTranslator):
         auto_grab = True, 
     ) -> None:
         super().__init__(special_id_file, replace_map_file, ignore_id_file, base_url, auto_grab)
+        self.apis = self.APIS
         
     def _grab_data(self, api: str):
         json_data = self._call_api(api)
         for d in json_data:
+            # 获取基础ID
             base_id = str(d['ItemCodeName']).upper()
             if base_id in self.ignore_ids: continue
+            # 处理ID生成可能的ID集合
             tids = (self.special_id_map.get(base_id),)
             tids = (
                 f"{self.PREFIX_NAME}{base_id}",
             ) if tids[0] is None else tids
+            # 收集需要的数据
             self.data[tids] = {
                 'speed': self._format_int(int(d['LinearSpeed'])),
                 'dmg': self._format_int(int(d['Misdmg'])),
                 'size': (int(d['Size'])),
-                'track': self.__replace(d['TrackingSignalType']),
+                'track': self._replace(d['TrackingSignalType']),
             }
             self.id_set.add(tids)
-            
-    def grab_data_batch(self) -> None:
-        for api in self.APIS:
-            self._grab_data(api)
-            
-    def __replace(self, name):
-        return self.replace_map.get(name, name)
     
     def translate(self, tid: str|tuple, cn_str: str|None, en_str: str|None) -> str:
         if cn_str is None or en_str is None: raise RuntimeError("文本未提供")
@@ -119,6 +121,7 @@ class CstoneShipParts(BaseCstoneTranslator):
         auto_grab = True, 
     ) -> None:
         super().__init__(special_id_file, replace_map_file, ignore_id_file, base_url, auto_grab)
+        self.apis = self.APIS
         
     def _grab_data(self, api: str):
         json_data = self._call_api(api)
@@ -134,18 +137,11 @@ class CstoneShipParts(BaseCstoneTranslator):
             ) if tids[0] is None else tids
             self.data[tids] = {
                 'size': d['Size'],                          # S1/2/3/4
-                'class': self.__replace(d['ItemClass']),    # 军/民/工, etc
+                'class': self._replace(d['ItemClass']),    # 军/民/工, etc
                 'grade': d['Grade'],                        # A/B/C/D
-                'type': self.__replace(d['Type']),          # 冷却/发电, etc
+                'type': self._replace(d['Type']),          # 冷却/发电, etc
             }
             self.id_set.add(tids)
-            
-    def grab_data_batch(self) -> None:
-        for api in self.APIS:
-            self._grab_data(api)
-            
-    def __replace(self, name):
-        return self.replace_map.get(name, name)
     
     def translate(self, tid: str|tuple, cn_str: str|None, en_str: str|None) -> str:
         if cn_str is None or en_str is None: raise RuntimeError("文本未提供")
@@ -206,10 +202,6 @@ class CstoneFoodAndDrink(BaseCstoneTranslator):
                 'thirst': int(d['Thirst']), # 口渴度
             }
             self.id_set.add(tids)
-            
-    def grab_data_batch(self) -> None:
-        for api in self.APIS:
-            self._grab_data(api)
     
     def translate(self, tid: str|tuple, cn_str: str|None, en_str: str|None) -> str:
         if cn_str is None or en_str is None: raise RuntimeError("文本未提供")
