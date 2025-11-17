@@ -2,5 +2,9 @@
 /text_files/*
 /rules
 /rules/*
+/split_text_files
+/split_text_files/*
+/test
+/test/*
 *.ipynb
 *_aiGen.py
