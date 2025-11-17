@@ -55,7 +55,7 @@ class CstoneShipParts(BaseCstoneTranslator):
         'Shield':       '护盾',
     }
     
-    def __init__(self, base_url: str = 'https://finder.cstone.space', auto_grab = True, special_id_file = 'custom\direct_id\ship_parts.txt') -> None:
+    def __init__(self, base_url: str = 'https://finder.cstone.space', auto_grab = True, special_id_file = 'custom\\direct_id\\ship_parts.txt') -> None:
         super().__init__(base_url, auto_grab)
         self.special_replace_map = dict()
         with open(special_id_file, 'r', encoding='utf-8') as file:
