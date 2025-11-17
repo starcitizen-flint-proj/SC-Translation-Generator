@@ -27,7 +27,7 @@ class BaseCstoneTranslator(ABC):
         pass
     
     @abstractmethod
-    def translate(self, tid: str, cn_str: str, en_str: str) -> str:
+    def translate(self, tid: str, cn_str: str|None, en_str: str|None) -> str:
         pass
     
     def get_ids(self) -> set[str]:
@@ -92,6 +92,7 @@ class CstoneShipParts(BaseCstoneTranslator):
     def __replace(self, name):
         return self.NAME_TABLE.get(name, name)
     
-    def translate(self, tid: str|tuple, cn_str: str, en_str: str) -> str:
+    def translate(self, tid: str|tuple, cn_str: str|None, en_str: str|None) -> str:
+        if cn_str is None or en_str is None: raise RuntimeError("文本未提供")
         stat = self.data[tid]
         return f"{en_str} [S{stat['size']}{stat['class']}{stat['grade']} {cn_str}]({stat['type']})"

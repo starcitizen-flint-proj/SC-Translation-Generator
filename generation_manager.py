@@ -51,7 +51,7 @@ class GenerationManager():
                 logging.warning(e)
                 continue
             
-    def generate(self, output_path, suffix_files = None):
+    def generate(self, output_path, suffix_files: str|list|None = None, suffix_data: dict|None = None):
         with open(output_path, 'w', encoding='utf-8') as file:
             for id in self.id_list:
                 tid = self.get_id(id)
@@ -73,8 +73,11 @@ class GenerationManager():
                             file.write(suffix.read())
                     except Exception as e:
                         logging.warning(e)
+            if suffix_data is not None:
+                for tid, text in suffix_data.items():
+                    file.write(f"{tid}={text}\n")
 
-    def get_id(self, src_id: str|tuple):
+    def get_id(self, src_id: str|tuple) -> str|None:
         if isinstance(src_id, str):
             return self.id_map.get(src_id.upper())
         elif isinstance(src_id, tuple):
@@ -82,3 +85,10 @@ class GenerationManager():
                 result = self.get_id(id)
                 if result is not None: return result
         return None
+    
+    def get_text(self, tid: str, src: str = 'ref'):
+        tid_s = self.get_id(tid)
+        if tid_s is None:
+            logging.warning(f"{tid} not found")
+            return self.text_data[src].get(tid)
+        return self.text_data[src].get(tid_s)
