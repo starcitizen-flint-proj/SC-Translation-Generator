@@ -1,0 +1,3 @@
+Electromagnetic=电磁EM
+CrossSection=横截面SC
+Infrared=红外IR

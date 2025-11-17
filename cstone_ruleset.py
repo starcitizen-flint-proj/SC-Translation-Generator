@@ -39,13 +39,16 @@ class BaseCstoneTranslator(ABC):
         if auto_grab:
             self.grab_data_batch()
         
-    def call_api(self, api: str):
+    def _call_api(self, api: str):
         api = api.removeprefix('/')
         base_url = self.base_url.removesuffix('/')
         now_timestamp = int(time.time() * 1000)
         response = requests.get(f"{base_url}/{api}?_={now_timestamp}")
         response.raise_for_status()
         return response.json()
+    
+    def _format_int(self, num):
+        return f"{num:,}"
         
     @abstractmethod
     def _grab_data(self, api: str) -> None:
@@ -61,7 +64,52 @@ class BaseCstoneTranslator(ABC):
     
     def get_ids(self) -> set[str]:
         return self.id_set
+
+# NOTE 这个基本算是最简单最标准的一个了 
+class CstoneMissile(BaseCstoneTranslator):
     
+    PREFIX_NAME = 'ITEM_NAME'
+    APIS = ['GetMissiles',] 
+    
+    def __init__(
+        self, 
+        special_id_file     = 'custom/direct_id/missile.txt',
+        replace_map_file    = 'custom/replace_map/missile.txt',
+        ignore_id_file      = 'custom/ignore/missile.txt',
+        base_url: str       = 'https://finder.cstone.space', 
+        auto_grab = True, 
+    ) -> None:
+        super().__init__(special_id_file, replace_map_file, ignore_id_file, base_url, auto_grab)
+        
+    def _grab_data(self, api: str):
+        json_data = self._call_api(api)
+        for d in json_data:
+            base_id = str(d['ItemCodeName']).upper()
+            if base_id in self.ignore_ids: continue
+            tids = (self.special_id_map.get(base_id),)
+            tids = (
+                f"{self.PREFIX_NAME}{base_id}",
+            ) if tids[0] is None else tids
+            self.data[tids] = {
+                'speed': self._format_int(int(d['LinearSpeed'])),
+                'dmg': self._format_int(int(d['Misdmg'])),
+                'size': (int(d['Size'])),
+                'track': self.__replace(d['TrackingSignalType']),
+            }
+            self.id_set.add(tids)
+            
+    def grab_data_batch(self) -> None:
+        for api in self.APIS:
+            self._grab_data(api)
+            
+    def __replace(self, name):
+        return self.replace_map.get(name, name)
+    
+    def translate(self, tid: str|tuple, cn_str: str|None, en_str: str|None) -> str:
+        if cn_str is None or en_str is None: raise RuntimeError("文本未提供")
+        stat = self.data[tid]
+        return f"{en_str}\\n{cn_str}\\n[S{stat['size']}{stat['track']} 伤害{stat['dmg']} 速度{stat['speed']}]"
+
 class CstoneShipParts(BaseCstoneTranslator):
     
     PREFIX_ITEM_NAME = 'ITEM_NAME'
@@ -79,7 +127,7 @@ class CstoneShipParts(BaseCstoneTranslator):
         super().__init__(special_id_file, replace_map_file, ignore_id_file, base_url, auto_grab)
         
     def _grab_data(self, api: str):
-        json_data = self.call_api(api)
+        json_data = self._call_api(api)
         for d in json_data:
             base_id = str(d['ItemCodeName']).upper().removesuffix('SCITEM').removesuffix('_')
             if base_id in self.ignore_ids: continue
@@ -127,7 +175,7 @@ class CstoneFoodAndDrink(BaseCstoneTranslator):
         super().__init__(special_id_file, replace_map_file, ignore_id_file, base_url, auto_grab)
         
     def _grab_data(self, api: str):
-        json_data = self.call_api(api)
+        json_data = self._call_api(api)
         for d in json_data:
             base_id = str(d['ItemCodeName']).upper().removesuffix('SCITEM').removesuffix('_')
             if base_id in self.ignore_ids: continue
@@ -172,4 +220,4 @@ class CstoneFoodAndDrink(BaseCstoneTranslator):
     def translate(self, tid: str|tuple, cn_str: str|None, en_str: str|None) -> str:
         if cn_str is None or en_str is None: raise RuntimeError("文本未提供")
         stat = self.data[tid]
-        return f"{en_str}\\n{cn_str} NDR:{stat['hunger']} HEI:{stat['thirst']}"
+        return f"{en_str}\\n{cn_str} [NDR:{stat['hunger']} HEI:{stat['thirst']}]"
