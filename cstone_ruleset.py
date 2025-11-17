@@ -37,9 +37,6 @@ class CstoneBaseRuleset(BaseRuleset):
             for line in file.readlines():
                 tid = line.removesuffix('\n')
                 self.ignore_ids.add(tid)
-                
-        if auto_grab:
-            self.grab_data_batch()
         
     def _call_api(self, api: str):
         api = api.removeprefix('/')
@@ -51,10 +48,6 @@ class CstoneBaseRuleset(BaseRuleset):
     
     def _format_int(self, num):
         return f"{num:,}"
-    
-    def grab_data_batch(self) -> None:
-        for api in self.apis:
-            self._grab_data(api)
             
     def _replace(self, name):
         return self.replace_map.get(name, name)
@@ -64,6 +57,10 @@ class CstoneBaseRuleset(BaseRuleset):
     @abstractmethod
     def _grab_data(self, api: str) -> None:
         pass
+    
+    def grab_data_batch(self) -> None:
+        for api in self.apis:
+            self._grab_data(api)
 
 # NOTE 这个基本算是最简单最标准的一个了 
 class CstoneMissile(CstoneBaseRuleset):
@@ -81,6 +78,8 @@ class CstoneMissile(CstoneBaseRuleset):
     ) -> None:
         super().__init__(special_id_file, replace_map_file, ignore_id_file, base_url, auto_grab)
         self.apis = self.APIS
+        if auto_grab:
+            self.grab_data_batch()
         
     def _grab_data(self, api: str):
         json_data = self._call_api(api)
@@ -123,6 +122,8 @@ class CstoneShipParts(CstoneBaseRuleset):
     ) -> None:
         super().__init__(special_id_file, replace_map_file, ignore_id_file, base_url, auto_grab)
         self.apis = self.APIS
+        if auto_grab:
+            self.grab_data_batch()
         
     def _grab_data(self, api: str):
         json_data = self._call_api(api)
@@ -164,6 +165,9 @@ class CstoneFoodAndDrink(CstoneBaseRuleset):
         auto_grab = True, 
     ) -> None:
         super().__init__(special_id_file, replace_map_file, ignore_id_file, base_url, auto_grab)
+        self.apis = self.APIS
+        if auto_grab:
+            self.grab_data_batch()
         
     def _grab_data(self, api: str):
         json_data = self._call_api(api)

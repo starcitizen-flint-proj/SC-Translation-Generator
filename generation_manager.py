@@ -40,8 +40,10 @@ class GenerationManager():
             
     def apply_rulesets(self, rulesets: list[Type[BaseRuleset]]):
         for ruleset_cls in rulesets:
+            logging.info(f"Applying ruleset {ruleset_cls.__name__}...")
             ruleset = ruleset_cls()
             self.apply_single_ruleset(ruleset)
+            logging.info(f"Apply ruleset {ruleset_cls.__name__} finished.")
     
     def process(self, ids: Iterable[str], translate: Callable[[str|tuple, str|None, str|None], str]):
         for id in ids:
