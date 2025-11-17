@@ -1,6 +1,8 @@
 import re, json
 import logging
 from typing import Iterable, Callable
+from typing import Type
+from base_ruleset import BaseRuleset
 
 class GenerationManager():
     
@@ -32,6 +34,14 @@ class GenerationManager():
 
         self.processed = set()
         self.result_data = dict()
+        
+    def apply_single_ruleset(self, ruleset: BaseRuleset):
+        self.process(ruleset.get_ids(), ruleset.translate)
+            
+    def apply_rulesets(self, rulesets: list[Type[BaseRuleset]]):
+        for ruleset_cls in rulesets:
+            ruleset = ruleset_cls()
+            self.apply_single_ruleset(ruleset)
     
     def process(self, ids: Iterable[str], translate: Callable[[str|tuple, str|None, str|None], str]):
         for id in ids:
