@@ -1,10 +1,9 @@
 import time
 import requests
-from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from abc import abstractmethod
 from base_ruleset import BaseRuleset
 
-class BaseCstoneTranslator(BaseRuleset):
+class CstoneBaseRuleset(BaseRuleset):
     
     def __init__(
         self, 
@@ -14,6 +13,8 @@ class BaseCstoneTranslator(BaseRuleset):
         base_url: str = 'https://finder.cstone.space', 
         auto_grab = True
     ) -> None:
+        
+        super().__init__()
         
         self.base_url = base_url
         self.data = dict()
@@ -65,7 +66,7 @@ class BaseCstoneTranslator(BaseRuleset):
         pass
 
 # NOTE 这个基本算是最简单最标准的一个了 
-class CstoneMissile(BaseCstoneTranslator):
+class CstoneMissile(CstoneBaseRuleset):
     
     PREFIX_NAME = 'ITEM_NAME'
     APIS = ['GetMissiles',] 
@@ -106,7 +107,7 @@ class CstoneMissile(BaseCstoneTranslator):
         stat = self.data[tid]
         return f"{en_str}\\n{cn_str}\\n[S{stat['size']}{stat['track']} 伤害{stat['dmg']} 速度{stat['speed']}]"
 
-class CstoneShipParts(BaseCstoneTranslator):
+class CstoneShipParts(CstoneBaseRuleset):
     
     PREFIX_ITEM_NAME = 'ITEM_NAME'
     # NOTE 跳跃模块和刀片的名称/数据不对，这俩目前也没啥需要改的所以无所谓了
@@ -148,7 +149,7 @@ class CstoneShipParts(BaseCstoneTranslator):
         stat = self.data[tid]
         return f"{en_str} [S{stat['size']}{stat['class']}{stat['grade']} {cn_str}]({stat['type']})"
     
-class CstoneFoodAndDrink(BaseCstoneTranslator):
+class CstoneFoodAndDrink(CstoneBaseRuleset):
     
     PREFIX_NAME = 'ITEM_NAME'
     PREFIX_COMMODITIES = 'items_commodities'
