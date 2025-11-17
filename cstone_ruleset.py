@@ -1,9 +1,10 @@
+import time
+import requests
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
-import requests
-import time
+from base_ruleset import BaseRuleset
 
-class BaseCstoneTranslator(ABC):
+class BaseCstoneTranslator(BaseRuleset):
     
     def __init__(
         self, 
@@ -16,7 +17,7 @@ class BaseCstoneTranslator(ABC):
         
         self.base_url = base_url
         self.data = dict()
-        self.id_set = set()
+        
         
         self.special_id_map = dict()
         self.replace_map    = dict()
@@ -57,13 +58,6 @@ class BaseCstoneTranslator(ABC):
     @abstractmethod
     def grab_data_batch(self) -> None:
         pass
-    
-    @abstractmethod
-    def translate(self, tid: str, cn_str: str|None, en_str: str|None) -> str:
-        pass
-    
-    def get_ids(self) -> set[str]:
-        return self.id_set
 
 # NOTE 这个基本算是最简单最标准的一个了 
 class CstoneMissile(BaseCstoneTranslator):
