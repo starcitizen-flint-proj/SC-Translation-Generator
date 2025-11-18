@@ -1,4 +1,4 @@
-import time
+import time, re
 import requests
 from abc import abstractmethod
 from base_ruleset import BaseRuleset
@@ -152,6 +152,8 @@ class CstoneShipParts(CstoneBaseRuleset):
     
 class CstoneFoodAndDrink(CstoneBaseRuleset):
     
+    # TODO 添加食物效果
+    
     PREFIX_NAME = 'ITEM_NAME'
     PREFIX_COMMODITIES = 'items_commodities'
     APIS = ['GetFoods', 'GetDrinks'] 
@@ -172,6 +174,12 @@ class CstoneFoodAndDrink(CstoneBaseRuleset):
     def _grab_data(self, api: str):
         json_data = self._call_api(api)
         for d in json_data:
+            effect_result = re.search(r'Effect.*: *(.*?) *\\n', str(d['Desc']))
+            effects = [self._replace(e) for e in effect_result.groups()[0].split(', ') if e != 'None'] if effect_result else []
+            if int(d['Hunger']) == 0 and int(d['Thirst']) == 0 and len(effects) == 0: 
+                # 包括了一些没效果的东西，忽略掉
+                continue
+            
             base_id = str(d['ItemCodeName']).upper().removesuffix('SCITEM').removesuffix('_')
             if base_id in self.ignore_ids: continue
             tids = (self.special_id_map.get(base_id),)
@@ -199,16 +207,28 @@ class CstoneFoodAndDrink(CstoneBaseRuleset):
                     f"{self.PREFIX_COMMODITIES}_{short_id}_SCITEM",
                 ]
                 tids = tuple(tids)
-            if int(d['Hunger']) == 0 and int(d['Thirst']) == 0: 
-                # 包括了一些没效果的东西，忽略掉
-                continue
+            
             self.data[tids] = {
                 'hunger': int(d['Hunger']), # 饥饿度
                 'thirst': int(d['Thirst']), # 口渴度
+                'effects': effects # 效果
             }
             self.id_set.add(tids)
     
     def translate(self, tid: str|tuple, cn_str: str|None, en_str: str|None) -> str:
         if cn_str is None or en_str is None: raise RuntimeError("文本未提供")
         stat = self.data[tid]
-        return f"{en_str}\\n{cn_str} [NDR:{stat['hunger']} HEI:{stat['thirst']}]"
+        result_str = f"{en_str} {cn_str}"
+        
+        if stat['hunger'] and stat['thirst']:
+            result_str += f"\\nNDR:{stat['hunger']} HEI:{stat['thirst']}"
+        elif stat['hunger']:
+            result_str += f"\\nNDR:{stat['hunger']}"
+        elif stat['thirst']:
+            result_str += f"\\nHEI:{stat['thirst']}"
+        
+        if len(stat['effects']):
+            result_str += ' ' if stat['hunger'] or stat['thirst'] else '\\n'
+            result_str += ', '.join(stat['effects'])
+            
+        return result_str

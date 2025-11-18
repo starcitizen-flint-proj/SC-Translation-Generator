@@ -1,0 +1,14 @@
+Cognitive Boosting=认知增强
+Cognitive Impairment=认知障碍
+Dehydrating=口渴
+Energizing=精力充沛
+Fatiguing=疲劳
+Hydrating=补水
+Hyper-Metabolic=快速代谢
+Hypermetabolic=加速代谢
+Hypertrophic=肌力充沛
+Hypo-Metabolic=延缓代谢
+Hypometabolic=延缓代谢
+Immune Boosting=免疫增强
+Immune Suppressing=免疫下降
+Toxic=有毒
