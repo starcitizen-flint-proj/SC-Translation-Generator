@@ -37,6 +37,9 @@ class CstoneBaseRuleset(BaseRuleset):
             for line in file.readlines():
                 tid = line.removesuffix('\n')
                 self.ignore_ids.add(tid)
+    
+    def _replace(self, name):
+        return self.replace_map.get(name, name)
         
     def _call_api(self, api: str):
         api = api.removeprefix('/')
@@ -45,12 +48,6 @@ class CstoneBaseRuleset(BaseRuleset):
         response = requests.get(f"{base_url}/{api}?_={now_timestamp}")
         response.raise_for_status()
         return response.json()
-    
-    def _format_int(self, num):
-        return f"{num:,}"
-            
-    def _replace(self, name):
-        return self.replace_map.get(name, name)
     
     # Cstone数据的规则集新增的需要实现的接口
     # 对某个API抓取数据
