@@ -62,7 +62,48 @@ class CstoneBaseRuleset(BaseRuleset):
         for api in self.apis:
             self._grab_data(api)
 
-# NOTE 这个基本算是最简单最标准的一个了 
+# NOTE 基础类，根据这个进行修改
+
+class CstoneChangeMe(CstoneBaseRuleset):
+    
+    PREFIX_NAME = 'ITEM_NAME'
+    APIS = ['',] 
+    
+    def __init__(
+        self, 
+        special_id_file     = 'custom/direct_id/CHANGEME.txt',
+        replace_map_file    = 'custom/replace_map/CHANGEME.txt',
+        ignore_id_file      = 'custom/ignore/CHANGEME.txt',
+        base_url: str       = 'https://finder.cstone.space', 
+        auto_grab = True, 
+    ) -> None:
+        super().__init__(special_id_file, replace_map_file, ignore_id_file, base_url, auto_grab)
+        self.apis = self.APIS
+        if auto_grab:
+            self.grab_data_batch()
+        
+    def _grab_data(self, api: str):
+        json_data = self._call_api(api)
+        for d in json_data:
+            # 获取基础ID
+            base_id = str(d['ItemCodeName']).upper()
+            if base_id in self.ignore_ids: continue
+            # 处理ID生成可能的ID集合
+            tids = (self.special_id_map.get(base_id),)
+            tids = (
+                f"{self.PREFIX_NAME}{base_id}",
+            ) if tids[0] is None else tids
+            # 收集需要的数据
+            self.data[tids] = {
+                
+            }
+            self.id_set.add(tids)
+    
+    def translate(self, tid: str|tuple, cn_str: str|None, en_str: str|None) -> str:
+        if cn_str is None or en_str is None: raise RuntimeError("文本未提供")
+        stat = self.data[tid]
+        return f"{en_str} {cn_str}"
+
 class CstoneMissile(CstoneBaseRuleset):
     
     PREFIX_NAME = 'ITEM_NAME'

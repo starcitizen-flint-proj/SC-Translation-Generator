@@ -50,7 +50,7 @@ class GenerationManager():
             tid = self.get_id(id)
             logging.info(tid)
             if tid not in self.id_set: 
-                logging.warning(f"[process]{tid}({id}) not found in id set")
+                logging.warning(f"[PROC_MISSINGID] {tid}({id}) not found in id set")
                 continue
             elif tid in self.processed:
                 logging.info(f"{tid} processed, skip")
@@ -60,7 +60,7 @@ class GenerationManager():
                 logging.info(f"{id} -> {tid}: {self.result_data[tid]}")
                 self.processed.add(id)
             except Exception as e:
-                logging.warning(e)
+                logging.warning(f"[PROC_EXECPTION] {e}")
                 continue
             
     def generate(self, output_path, suffix_files: str|list|None = None, suffix_data: dict|None = None):
@@ -68,14 +68,14 @@ class GenerationManager():
             for id in self.id_list:
                 tid = self.get_id(id)
                 if tid is None:
-                    logging.warning(f"{tid} not found in id set")
+                    logging.warning(f"[GEN_MISSINGID] {tid} not found in id set")
                     continue
                 if tid in self.result_data.keys(): 
                     file.write(f"{tid}={self.result_data[tid]}\n")
                 elif tid in self.text_data['ref'].keys():
                     file.write(f"{tid}={self.text_data['ref'][tid]}\n")
                 else:
-                    logging.warning(f"{tid} not found in result or reference")
+                    logging.warning(f"[GEN_MISSINGID] {tid} not found in result or reference")
             if suffix_files is not None:
                 if isinstance(suffix_files, str):
                     suffix_files = [suffix_files]
@@ -84,7 +84,7 @@ class GenerationManager():
                         with open(suffix_file, 'r', encoding='utf-8') as suffix:
                             file.write(suffix.read())
                     except Exception as e:
-                        logging.warning(e)
+                        logging.warning(f"[GEN_EXECPTION] {e}")
             if suffix_data is not None:
                 for tid, text in suffix_data.items():
                     file.write(f"{tid}={text}\n")
@@ -101,6 +101,6 @@ class GenerationManager():
     def get_text(self, tid: str, src: str = 'ref'):
         tid_s = self.get_id(tid)
         if tid_s is None:
-            logging.warning(f"{tid} not found")
+            logging.warning(f"[GETTEXT_MISSINGID] {tid} not found")
             return self.text_data[src].get(tid)
         return self.text_data[src].get(tid_s)
