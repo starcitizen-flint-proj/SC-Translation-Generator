@@ -22,3 +22,4 @@ class BaseRuleset(ABC):
     @abstractmethod
     def translate(self, tid: str|tuple, cn_str: str|None, en_str: str|None) -> str:
         pass
+    

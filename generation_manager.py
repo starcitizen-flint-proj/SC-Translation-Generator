@@ -63,6 +63,16 @@ class GenerationManager():
                 logging.warning(f"[PROC_EXECPTION] {e}")
                 continue
             
+    def __proc_missing_data(self, tid):
+        # NOTE 对于缺省值的处理
+        if tid in self.text_data['ref']:
+            return self.text_data['ref'][tid]
+        elif tid in self.text_data['cn']:
+            return self.text_data['cn'][tid]
+        elif tid in self.text_data['en']:
+            return self.text_data['en'][tid]
+        return None
+            
     def generate(self, output_path, suffix_files: str|list|None = None, suffix_data: dict|None = None):
         with open(output_path, 'w', encoding='utf-8') as file:
             for id in self.id_list:
@@ -75,7 +85,12 @@ class GenerationManager():
                 elif tid in self.text_data['ref'].keys():
                     file.write(f"{tid}={self.text_data['ref'][tid]}\n")
                 else:
-                    logging.warning(f"[GEN_MISSINGID] {tid} not found in result or reference")
+                    text = self.__proc_missing_data(tid)
+                    logging.warning(f"[GEN_MISSINGID] {tid} not found in result or reference, using {text} instead")
+                    if text is None:
+                        logging.warning(f"[GEN_MISSINGID_EMPTY] {tid} not found anywhere")
+                        continue
+                    file.write(f"{tid}={text}\n")
             if suffix_files is not None:
                 if isinstance(suffix_files, str):
                     suffix_files = [suffix_files]

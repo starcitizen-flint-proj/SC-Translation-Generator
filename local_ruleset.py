@@ -29,3 +29,36 @@ class BombRuleset(BaseRuleset):
     def translate(self, tid: str | tuple, cn_str: str | None, en_str: str | None) -> str:
         size, dmg = self.stat[str(tid)]
         return f"{en_str} [{cn_str}]\\nS{size} 伤害{dmg}"
+    
+class GeneralReplaceRuleset(BaseRuleset):
+    
+    """### 直接替换规则集  
+    使用的ini文件和普通的文本文件基本一致  
+    但是支持以`#`开头，不包括`=`的注释
+    """
+    
+    def __init__(self, ruleset_folder = 'custom/data/direct_replace'):
+        super().__init__()
+        self.data = dict()
+        import os, logging
+        for file in os.listdir(ruleset_folder):
+            if (not file.endswith('.ini')) or os.path.isdir(os.path.join(ruleset_folder, file)): continue
+            full_path = os.path.join(ruleset_folder, file)
+            logging.info(f"读取{full_path}")
+            with open(full_path, 'r', encoding='utf-8') as fp:
+                for line in fp.readlines():
+                    tid, p, text = line.partition('=')
+                    if (tid.startswith('#') or tid == '') and p != '=' and text == '':
+                        continue
+                    self.data[tid.upper()] = text
+                    self.id_set.add(tid.upper())
+                    
+        logging.info('直接替换规则集初始化完毕')
+    
+    def translate(self, tid: str | tuple, cn_str: str | None, en_str: str | None) -> str:
+        if isinstance(tid, tuple):
+            tid = str(tid[0]).upper()
+        if tid not in self.id_set: 
+            raise KeyError('文本ID不存在')
+        return self.data[tid]
+        

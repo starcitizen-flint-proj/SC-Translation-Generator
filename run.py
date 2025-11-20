@@ -1,15 +1,21 @@
 from generation_manager import GenerationManager
-from cstone_ruleset import CstoneShipParts
+from cstone_ruleset import *
+from local_ruleset import *
 
-VERSION = "4.3.2"
+VERSION = '4.4.0'
 
-maker = GenerationManager(f"text_files\\{VERSION}\\en.ini", f"text_files\\{VERSION}\\cn.ini", f"text_files\\{VERSION}\\global.ini")
-
-ship_parts_translator = CstoneShipParts()
-maker.process(
-    ids=ship_parts_translator.get_ids(), 
-    translate=ship_parts_translator.translate
+maker = GenerationManager(
+    f"text_files\\{VERSION}\\en.ini", 
+    f"text_files\\{VERSION}\\cn.ini", 
+    f"text_files\\{VERSION}\\global.ini"
 )
+maker.apply_rulesets([
+    GeneralReplaceRuleset,
+    CstoneFoodAndDrink,
+    CstoneMissile,
+    CstoneShipParts,
+    BombRuleset
+])
 
 maker.generate(
     output_path=f"text_files\\{VERSION}\\output.ini",
