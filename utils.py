@@ -1,5 +1,13 @@
 import os, re
+import logging
 import config
+
+from io import TextIOWrapper
+
+def read_file_lines(file: TextIOWrapper) -> list[str]:
+    content = file.read().replace(config.UNKNOWN_CHR, config.REPLACE_CHR)
+    lines = content.splitlines()
+    return lines
 
 class TextReader():
     
@@ -12,13 +20,15 @@ class TextReader():
         self.id_set  = set()
         self.en_dict = dict()
         self.cn_dict = dict()
-        with open(os.path.join(base_path, en_file)) as file:
-            for line in file.readlines():
+        with open(os.path.join(base_path, en_file), 'r', encoding=config.ENCODE, errors='replace') as file:
+            logging.info(f"Reading {os.path.join(base_path, en_file)}")
+            for line in read_file_lines(file):
                 tid, _, text = line.partition('=')
                 self.id_set.add(tid)
                 self.en_dict[tid] = text
-        with open(os.path.join(base_path, cn_file)) as file:
-            for line in file.readlines():
+        with open(os.path.join(base_path, cn_file), 'r', encoding=config.ENCODE, errors='replace') as file:
+            logging.info(f"Reading {os.path.join(base_path, cn_file)}")
+            for line in read_file_lines(file):
                 tid, _, text = line.partition('=')
                 self.id_set.add(tid)
                 self.cn_dict[tid] = text

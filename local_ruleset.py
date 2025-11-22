@@ -1,4 +1,6 @@
 from base_ruleset import BaseRuleset
+import config
+from utils import read_file_lines
 
 class BombRuleset(BaseRuleset):
     
@@ -41,12 +43,13 @@ class GeneralReplaceRuleset(BaseRuleset):
         super().__init__()
         self.data = dict()
         import os, logging
-        for file in os.listdir(ruleset_folder):
-            if (not file.endswith('.ini')) or os.path.isdir(os.path.join(ruleset_folder, file)): continue
-            full_path = os.path.join(ruleset_folder, file)
+        for filename in os.listdir(ruleset_folder):
+            if (not filename.endswith('.ini')) or os.path.isdir(os.path.join(ruleset_folder, filename)): continue
+            full_path = os.path.join(ruleset_folder, filename)
             logging.info(f"读取{full_path}")
-            with open(full_path, 'r', encoding='utf-8') as fp:
-                for line in fp.readlines():
+            with open(full_path, 'r', encoding=config.ENCODE, errors='replace') as file:
+                logging.info(f"Reading {full_path}")
+                for line in read_file_lines(file):
                     tid, p, text = line.partition('=')
                     if (tid.startswith('#') or tid == '') and p != '=' and text == '':
                         continue
@@ -61,4 +64,9 @@ class GeneralReplaceRuleset(BaseRuleset):
         if tid not in self.id_set: 
             raise KeyError('文本ID不存在')
         return self.data[tid]
-        
+
+# TODO
+# class RepRuleset(BaseRuleset):
+    
+#     def __init__(self) -> None:
+#         super().__init__()

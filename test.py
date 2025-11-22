@@ -1,4 +1,9 @@
 import os, re
+import config
+from utils import read_file_lines
+
+# 之前的测试文件，还有一些值得参考的
+# 暂时先没删
 
 def split_by_first_equal(text):
     if '=' in text:
@@ -9,10 +14,10 @@ def split_by_first_equal(text):
         
 # 读取文件
 files = dict()
-for file in os.listdir('text_files'):
-    files[file.replace('.ini', '')] = dict()
-    with open(os.path.join('text_files', file), 'r', encoding='utf-8') as fp:
-        for line in fp.readlines():
+for filename in os.listdir('text_files'):
+    files[filename.replace('.ini', '')] = dict()
+    with open(os.path.join('text_files', filename), 'r', encoding=config.ENCODE, errors='replace') as file:
+        for line in read_file_lines(file):
             id, text = split_by_first_equal(line)
             if text[-1] == '\n':
                 text = text[:-1]
@@ -40,7 +45,7 @@ for id in ids:
         else:
             result[id] = files['en'][id]
 
-with open('global.ini', 'w', encoding='utf-8') as fp:
+with open('global.ini', 'w', encoding=config.ENCODE, errors='replace') as fp:
     for id in ids:
         # print(result[id])
         fp.write(f'{id}={result[id]}\n')

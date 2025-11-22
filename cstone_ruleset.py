@@ -1,7 +1,11 @@
 import time, re
 import requests
+import logging
 from abc import abstractmethod
 from base_ruleset import BaseRuleset
+
+import config
+from utils import read_file_lines
 
 class CstoneBaseRuleset(BaseRuleset):
     
@@ -23,18 +27,21 @@ class CstoneBaseRuleset(BaseRuleset):
         self.special_id_map = dict()
         self.replace_map    = dict()
         self.ignore_ids     = set()
-        with open(special_id_file, 'r', encoding='utf-8') as file:
-            for line in file.readlines():
+        with open(special_id_file, 'r', encoding=config.ENCODE, errors='replace') as file:
+            logging.info(f"Reading {special_id_file}")
+            for line in read_file_lines(file):
                 target, _, tid = line.partition('=')
                 tid = tid.removesuffix('\n')
                 self.special_id_map[target] = tid
-        with open(replace_map_file, 'r', encoding='utf-8') as file:
-            for line in file.readlines():
+        with open(replace_map_file, 'r', encoding=config.ENCODE, errors='replace') as file:
+            logging.info(f"Reading {replace_map_file}")
+            for line in read_file_lines(file):
                 src, _, dst = line.partition('=')
                 dst = dst.removesuffix('\n')
                 self.replace_map[src] = dst
-        with open(ignore_id_file, 'r', encoding='utf-8') as file:
-            for line in file.readlines():
+        with open(ignore_id_file, 'r', encoding=config.ENCODE, errors='replace') as file:
+            logging.info(f"Reading {ignore_id_file}")
+            for line in read_file_lines(file):
                 tid = line.removesuffix('\n')
                 self.ignore_ids.add(tid)
     

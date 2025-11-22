@@ -4,6 +4,9 @@ from typing import Iterable, Callable
 from typing import Type
 from base_ruleset import BaseRuleset
 
+import config
+from utils import read_file_lines
+
 class GenerationManager():
     
     def __init__(self, en_file, cn_file, ref_file) -> None:
@@ -21,8 +24,9 @@ class GenerationManager():
             'ref': ref_file,
         }
         for key, filename in file_map.items():
-            with open(filename, 'r', encoding='utf-8') as file:
-                for line in file.readlines():
+            with open(filename, 'r', encoding=config.ENCODE, errors='replace') as file:
+                logging.info(f"Reading {filename}")
+                for line in read_file_lines(file):
                     tid, _, text = line.partition('=')
                     tid = tid.removeprefix('\ufeff')
                     text = text.removesuffix('\n')
@@ -74,7 +78,8 @@ class GenerationManager():
         return None
             
     def generate(self, output_path, suffix_files: str|list|None = None, suffix_data: dict|None = None):
-        with open(output_path, 'w', encoding='utf-8') as file:
+        with open(output_path, 'w', encoding=config.ENCODE, errors='replace') as file:
+            logging.info(f"Writing {output_path}")
             for id in self.id_list:
                 tid = self.get_id(id)
                 if tid is None:
@@ -96,7 +101,8 @@ class GenerationManager():
                     suffix_files = [suffix_files]
                 for suffix_file in suffix_files:
                     try:
-                        with open(suffix_file, 'r', encoding='utf-8') as suffix:
+                        with open(suffix_file, 'r', encoding=config.ENCODE, errors='replace') as suffix:
+                            logging.info(f"Reading {suffix_file}")
                             file.write(suffix.read())
                     except Exception as e:
                         logging.warning(f"[GEN_EXECPTION] {e}")
