@@ -1,14 +1,15 @@
+import os
+import config
 from generation_manager import GenerationManager
 from cstone_ruleset import *
 from local_ruleset import *
 
-VERSION = '4.4.0'
-
 maker = GenerationManager(
-    f"text_files\\{VERSION}\\en.ini", 
-    f"text_files\\{VERSION}\\cn.ini", 
-    f"text_files\\{VERSION}\\global.ini"
+    os.path.join(config.TEXT_FILE_DIR, 'en.ini'), 
+    os.path.join(config.TEXT_FILE_DIR, 'cn.ini'), 
+    os.path.join(config.TEXT_FILE_DIR, 'ref.ini')
 )
+
 maker.apply_rulesets([
     GeneralReplaceRuleset,
     CstoneFoodAndDrink,
@@ -18,6 +19,6 @@ maker.apply_rulesets([
 ])
 
 maker.generate(
-    output_path=f"text_files\\{VERSION}\\output.ini",
+    output_path=os.path.join(config.TEXT_FILE_DIR, 'output.ini'),
     suffix_data={'_starcitizen_doctor_localization_version': f"{maker.get_text('_starcitizen_doctor_localization_version')}_ZapAug"}
 )
